@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "overfocus",
+    "overfocus-tui"
+]
