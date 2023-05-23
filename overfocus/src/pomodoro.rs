@@ -8,7 +8,7 @@ use std::{sync::{Mutex, Arc, MutexGuard}, thread, time::Duration};
 use anyhow::{Result, Ok};
 use thiserror::Error;
 
-enum PomodoroStage {
+pub enum PomodoroStage {
     Work, ShortBreak, LongBreak
 }
 
@@ -77,6 +77,22 @@ impl Pomodoro {
     pub fn lock_and<T>(data: &PomodoroHandle, func: impl FnOnce(MutexGuard<Pomodoro>) -> T) -> Result<T> {
         let locked = data.lock().map_err(|_| PomodoroError::PoisonedThread)?;
         Ok(func(locked))
+    }
+
+    pub fn stage(&self) -> &PomodoroStage {
+        &self.stage
+    }
+
+    pub fn repetitions(&self) -> usize {
+        self.repetitions
+    }
+
+    pub fn pomodoros(&self) -> usize {
+        self.pomodoros
+    }
+
+    pub fn seconds(&self) -> usize {
+        self.seconds
     }
 
 

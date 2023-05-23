@@ -7,5 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.71"
+crossterm = "0.26.1"
 overfocus = { version = "0.1.0", path = "../overfocus" }
 thiserror = "1.0.40"
+tui = "0.19.0"
