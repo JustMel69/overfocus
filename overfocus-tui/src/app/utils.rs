@@ -6,6 +6,7 @@ pub fn draw_block_with_text<'a, B: Backend, T: Into<Text<'a>>>(text: T, alignmen
     frame.render_widget(paragraph, rect);
 }
 
+/// Returs a Rect centered in the source rect with a given size
 pub fn sub_rect(rect: Rect, size: (u16, u16)) -> Rect {
     Rect::new(
         rect.x + (rect.width / 2) - (size.0 / 2),

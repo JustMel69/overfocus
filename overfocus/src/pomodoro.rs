@@ -1,13 +1,9 @@
-// 25 min work
-// 5 min break
-// Repeat 3 times
-// 30 min break
-
 use std::{sync::{Mutex, Arc, MutexGuard}, thread, time::Duration};
 
 use anyhow::{Result, Ok};
 use thiserror::Error;
 
+#[derive(Clone, Copy)]
 pub enum PomodoroStage {
     Work, ShortBreak, LongBreak
 }
@@ -25,12 +21,13 @@ enum UserInputFlags {
 /// - A big 30 minute break
 pub struct Pomodoro {
     stage: PomodoroStage,
-    repetitions: usize,
+    repetitions: u8,
     pomodoros: usize,
     seconds: usize,
 
     input_flags: UserInputFlags,
 }
+
 
 #[derive(Error, Debug)]
 pub enum PomodoroError {
@@ -65,6 +62,13 @@ impl Pomodoro {
             x.input_flags = UserInputFlags::Pause;
         })
     }
+    
+    /// Resumes the pomodoro progression
+    pub fn resume(data: &PomodoroHandle) -> Result<()> {
+        Self::lock_and(data, |mut x| {
+            x.input_flags = UserInputFlags::None;
+        })
+    }
 
     /// Halts the pomodoro thread
     pub fn stop(data: &PomodoroHandle) -> Result<()> {
@@ -83,7 +87,7 @@ impl Pomodoro {
         &self.stage
     }
 
-    pub fn repetitions(&self) -> usize {
+    pub fn repetitions(&self) -> u8 {
         self.repetitions
     }
 

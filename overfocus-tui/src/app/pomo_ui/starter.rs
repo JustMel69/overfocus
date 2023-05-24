@@ -1,30 +1,23 @@
 use tui::{backend::Backend, layout::{Rect, Alignment}, style::{Color, Style, Modifier}, text::{Span, Spans}, widgets::{Block, Borders, Paragraph}};
 
-use crate::app::{utils::sub_rect, input::UserInput};
+use crate::app::{utils::sub_rect, input::{UserInput, Target}, ui::UI};
 
 struct Stats { max: u8, cur: u8, avg: u8 }
 
-#[allow(unused)]
+/// The struct that holds the information of the pomodoro starting screen
 pub struct PomodoroStarterUI {
     stats: Stats,
     selected: u8,
 }
 
-impl PomodoroStarterUI {
-    pub fn new() -> Self {
-        Self { stats: Stats { max: 0, cur: 0, avg: 0 }, selected: 0 }
-    }
-    
-    pub fn ui<B: Backend>(&mut self, frame: &mut tui::Frame<B>, rect: Rect, input: &mut UserInput) {
+impl<B: Backend> UI<B> for PomodoroStarterUI {
+    fn ui(&mut self, frame: &mut tui::Frame<B>, rect: Rect, input: &mut UserInput) {
         // Handle input
-        input.consume_eq(UserInput::Up, |_| if self.selected == 1 { self.selected = 0 });
-        input.consume_eq(UserInput::Down, |_| if self.selected == 0 { self.selected = 1 });
-        if input.consume_eq(UserInput::Enter, |input| {
-            if self.selected == 0 {
-                todo!();
-            } else {
-                *input = UserInput::Quit // Convert user input to quit so the application quits
-            }
+        input.consume_matches(|x| matches!(x, UserInput::Up), |_| if self.selected == 1 { self.selected = 0 });
+        input.consume_matches(|x| matches!(x, UserInput::Down), |_| if self.selected == 0 { self.selected = 1 });
+        if input.consume_matches(|x| matches!(x, UserInput::Enter), |input| {
+            // Converts input to redirections
+            *input = UserInput::Goto(if self.selected == 0 { Target::Pomodoro } else { Target::Quit })
         }).is_some() { return }
 
         // Create layout
@@ -37,7 +30,13 @@ impl PomodoroStarterUI {
         let paragraph = Paragraph::new(text).block(block);
         frame.render_widget(paragraph, rect);
     }
+}
 
+impl PomodoroStarterUI {
+    pub fn new() -> Self {
+        Self { stats: Stats { max: 0, cur: 0, avg: 0 }, selected: 0 }
+    }
+    
     fn get_spans(&self) -> Vec<Spans> {
         let mut res = vec![
             Spans::from(format!("Max: {}", self.stats.max)),

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use app::App;
 use crossterm::{event::{EnableMouseCapture, DisableMouseCapture}, terminal::{enable_raw_mode, EnterAlternateScreen, disable_raw_mode, LeaveAlternateScreen}, execute};
 use tui::{backend::{CrosstermBackend, Backend}, Terminal};
@@ -11,7 +13,7 @@ fn main() {
 
     // Run application
     let mut app = App::new(terminal);
-    app.run();
+    app.run(Duration::from_millis(200));
 
     terminate_terminal(app).unwrap();
 }
