@@ -44,7 +44,7 @@ impl PomodoroClockUI {
     }
 
     fn get_spans(&self) -> Vec<Spans> {
-        let (secs, reps, pomos, stage) = Pomodoro::lock_and(&self.clock, |x| (x.seconds(), x.repetitions(), x.pomodoros(), x.stage().clone())).unwrap();
+        let (secs, reps, pomos, stage) = Pomodoro::lock_and(&self.clock, |x| (x.seconds(), x.repetitions(), x.pomodoros(), *x.stage())).unwrap();
         
         let mut res = vec![
             Spans::from(format!("Pomodoros: {}", pomos)),
@@ -75,7 +75,7 @@ impl PomodoroClockUI {
         match stage {
             PomodoroStage::Work => format!("Work ({}/3)", reps + 1),
             PomodoroStage::ShortBreak => format!("Break ({}/3)", reps + 1),
-            PomodoroStage::LongBreak => format!("Long Break"),
+            PomodoroStage::LongBreak => "Long Break".to_string(),
         }
     }
 }

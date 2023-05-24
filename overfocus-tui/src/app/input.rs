@@ -26,10 +26,6 @@ impl UserInput {
     }
 
     pub fn is_consumed(&self) -> bool {
-        match self {
-            UserInput::Goto(_) => true,
-            UserInput::Consumed => true,
-            _ => false
-        }
+        matches!(self, UserInput::Goto(_) | UserInput::Consumed)
     }
 }
