@@ -1,6 +1,6 @@
-use tui::{backend::Backend, layout::{Rect, Alignment}, style::{Color, Style, Modifier}, text::{Span, Spans}, widgets::{Block, Borders, Paragraph}};
+use tui::{backend::Backend, layout::{Rect, Alignment}, text::{Span, Spans}, widgets::{Block, Borders, Paragraph}};
 
-use crate::app::{utils::sub_rect, input::{UserInput, Target}, ui::UI};
+use crate::app::{utils::sub_rect, input::{UserInput, Target}, ui::UI, styles::{regular_style, highlight_style}};
 
 struct Stats { max: u8, cur: u8, avg: u8 }
 
@@ -26,8 +26,8 @@ impl<B: Backend> UI<B> for PomodoroStarterUI {
         // Actually do shit
         let text = self.get_spans();
 
-        let block = Block::default().borders(Borders::ALL).title(" [ Pomodoro ] ").title_alignment(Alignment::Center);
-        let paragraph = Paragraph::new(text).block(block);
+        let block = Block::default().borders(Borders::ALL).title(" [ Pomodoro ] ").title_alignment(Alignment::Center).style(regular_style());
+        let paragraph = Paragraph::new(text).block(block).style(regular_style());
         frame.render_widget(paragraph, rect);
     }
 }
@@ -47,13 +47,13 @@ impl PomodoroStarterUI {
 
         if self.selected == 0 {
             res.extend([
-                Spans::from(Span::styled(">Start", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
-                Spans::from(Span::styled("-Exit", Style::default().fg(Color::White))),
+                Spans::from(Span::styled(">Start", highlight_style())),
+                Spans::from(Span::styled("-Exit", regular_style())),
             ]);
         } else {
             res.extend([
-                Spans::from(Span::styled("-Start", Style::default().fg(Color::White))),
-                Spans::from(Span::styled(">Exit", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
+                Spans::from(Span::styled("-Start", regular_style())),
+                Spans::from(Span::styled(">Exit", highlight_style())),
             ]);
         }
         res

@@ -1,7 +1,7 @@
 use overfocus::pomodoro::{PomodoroHandle, Pomodoro, PomodoroStage};
-use tui::{backend::Backend, text::{Spans, Span}, style::{Color, Style, Modifier}, widgets::{Block, Borders, Paragraph}, layout::Alignment};
+use tui::{backend::Backend, text::{Spans, Span}, widgets::{Block, Borders, Paragraph}, layout::Alignment};
 
-use crate::app::{ui::UI, utils::sub_rect, input::{UserInput, Target}};
+use crate::app::{ui::UI, utils::sub_rect, input::{UserInput, Target}, styles::{regular_style, highlight_style}};
 
 pub struct PomodoroClockUI {
     clock: PomodoroHandle,
@@ -31,8 +31,8 @@ impl<B: Backend> UI<B> for PomodoroClockUI {
         // Display things
         let rect = sub_rect(rect, (20, 8));
 
-        let block = Block::default().borders(Borders::ALL).title(" [ Pomodoro ] ").title_alignment(Alignment::Center);
-        let paragraph = Paragraph::new(self.get_spans()).block(block);
+        let block = Block::default().borders(Borders::ALL).title(" [ Pomodoro ] ").title_alignment(Alignment::Center).style(regular_style());
+        let paragraph = Paragraph::new(self.get_spans()).block(block).style(regular_style());
         frame.render_widget(paragraph, rect);
     }
 }
@@ -55,13 +55,13 @@ impl PomodoroClockUI {
 
         if self.selected == 0 {
             res.extend([
-                Spans::from(Span::styled(format!(">{}", self.get_pause_text()), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
-                Spans::from(Span::styled("-Stop and exit", Style::default().fg(Color::White))),
+                Spans::from(Span::styled(format!(">{}", self.get_pause_text()), highlight_style())),
+                Spans::from(Span::styled("-Stop and exit", regular_style())),
             ]);
         } else {
             res.extend([
-                Spans::from(Span::styled(format!("-{}", self.get_pause_text()), Style::default().fg(Color::White))),
-                Spans::from(Span::styled(">Stop and exit", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
+                Spans::from(Span::styled(format!("-{}", self.get_pause_text()), regular_style())),
+                Spans::from(Span::styled(">Stop and exit", highlight_style())),
             ]);
         }
         res
