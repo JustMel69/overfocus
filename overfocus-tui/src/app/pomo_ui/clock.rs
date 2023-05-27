@@ -17,7 +17,7 @@ impl<B: Backend> UI<B> for PomodoroClockUI {
         if input.consume_matches(|x| matches!(x, UserInput::Enter), |input| {
             if self.selected == 1 {
                 *input = UserInput::Goto(Target::PopStack);
-                Pomodoro::stop(&self.clock).unwrap();
+                Pomodoro::stop(&self.clock).unwrap()
             } else {
                 if self.paused {
                     Pomodoro::resume(&self.clock).unwrap()
@@ -60,7 +60,7 @@ impl PomodoroClockUI {
             ]);
         } else {
             res.extend([
-                Spans::from(Span::styled(format!(">{}", self.get_pause_text()), Style::default().fg(Color::White))),
+                Spans::from(Span::styled(format!("-{}", self.get_pause_text()), Style::default().fg(Color::White))),
                 Spans::from(Span::styled(">Stop and exit", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
             ]);
         }

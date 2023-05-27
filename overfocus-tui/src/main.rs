@@ -1,3 +1,6 @@
+#![forbid(unsafe_code)]
+#![allow(clippy::all)]
+
 use std::time::Duration;
 
 use app::App;

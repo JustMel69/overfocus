@@ -1,7 +1,8 @@
 use std::time::{Duration, Instant};
 
 use crossterm::event::{Event, self, KeyCode};
-use tui::{backend::Backend, Terminal, layout::{Layout, Direction, Constraint, Alignment}};
+use overfocus::logger::{Logger, LogKind};
+use tui::{backend::Backend, Terminal, layout::{Layout, Direction, Constraint, Alignment, Rect}, widgets::{Block, Borders, Paragraph}, style::{Style, Color}};
 
 use self::{utils::draw_block_with_text, input::{UserInput, Target}, pomo_ui::{starter::PomodoroStarterUI, clock::PomodoroClockUI}, ui::UI};
 
@@ -46,6 +47,8 @@ impl<B: Backend> App<B> {
     pub fn run(&mut self, tick_rate: Duration) {
         let mut input = UserInput::None;
         let mut ctx = AppContext { stack: vec![Box::new(PomodoroStarterUI::new())] };
+
+        Logger::init();
 
         // Burner read to remove any buffered input
         event::read().unwrap();
@@ -105,8 +108,24 @@ impl<B: Backend> App<B> {
 
         draw_block_with_text(" Overfocus | Pomodoro ", Alignment::Center, frame, layout[0]);
         ctx.last().ui(frame, layout[1], input);
-        draw_block_with_text(" [00:00:00] Pomodoro started!", Alignment::Left, frame, layout[2]);
+        Self::draw_logger(frame, layout[2]);
     }
 
-    
+    fn draw_logger(frame: &mut tui::Frame<B>, rect: Rect) {
+        let last = Logger::last().map(|x| (x.0, x.1, x.2));
+        let (str, kind) = match last {
+            Some((txt, kind, secs)) => (format!(" [{:02}:{:02}:{:02}] {}", secs / 3600, (secs / 60) % 60, secs % 60, txt), kind),
+            None => (String::new(), LogKind::Info),
+        };
+
+        let style = match kind {
+            LogKind::Info => Style::default().fg(Color::White),
+            LogKind::Warn => Style::default().fg(Color::Yellow),
+            LogKind::Err => Style::default().fg(Color::Red),
+        };
+
+        let block = Block::default().borders(Borders::ALL);
+        let paragraph = Paragraph::new(str).alignment(Alignment::Left).block(block).style(style);
+        frame.render_widget(paragraph, rect);
+    }   
 }

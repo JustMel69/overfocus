@@ -3,6 +3,8 @@ use std::{sync::{Mutex, Arc, MutexGuard}, thread, time::Duration};
 use anyhow::{Result, Ok};
 use thiserror::Error;
 
+use crate::{unwrap_err, log_info, log_warn, log_err};
+
 #[derive(Clone, Copy)]
 pub enum PomodoroStage {
     Work, ShortBreak, LongBreak
@@ -51,13 +53,17 @@ impl Pomodoro {
         }));
 
         let thread_pomodoro = pomodoro.clone();
-        thread::spawn(|| Self::tick(thread_pomodoro).unwrap()); // TODO: Actually send error to some logging system
+        thread::spawn(|| unwrap_err!(Self::tick(thread_pomodoro)));
+
+        log_info!("Pomodoro clock started.");
 
         pomodoro
     }
 
     /// Pauses the pomodoro progression, but the thread remains
     pub fn pause(data: &PomodoroHandle) -> Result<()> {
+        log_warn!("Pomodoro clock paused.");
+
         Self::lock_and(data, |mut x| {
             x.input_flags = UserInputFlags::Pause;
         })
@@ -65,6 +71,8 @@ impl Pomodoro {
     
     /// Resumes the pomodoro progression
     pub fn resume(data: &PomodoroHandle) -> Result<()> {
+        log_err!("Pomodoro clock resumed.");
+        
         Self::lock_and(data, |mut x| {
             x.input_flags = UserInputFlags::None;
         })
@@ -72,6 +80,8 @@ impl Pomodoro {
 
     /// Halts the pomodoro thread
     pub fn stop(data: &PomodoroHandle) -> Result<()> {
+        log_info!("Pomodoro clock stopped.");
+        
         Self::lock_and(data, |mut x| {
             x.input_flags = UserInputFlags::Stop;
         })
@@ -152,6 +162,7 @@ impl Pomodoro {
         if data.seconds >= 30 * 60 {
             data.start_work();
             data.pomodoros += 1;
+            data.repetitions = 0;
         }
     }
 
