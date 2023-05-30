@@ -1,10 +1,10 @@
 use std::time::{Duration, Instant};
 
 use crossterm::event::{Event, self, KeyCode};
-use overfocus::logger::{Logger, LogKind};
+use overfocus::logger::{Logger, LogKind, self};
 use tui::{backend::Backend, Terminal, layout::{Layout, Direction, Constraint, Alignment, Rect}, widgets::{Block, Borders, Paragraph}};
 
-use self::{utils::draw_block_with_text, input::{UserInput, Target}, pomo_ui::{starter::PomodoroStarterUI, clock::PomodoroClockUI}, ui::UI, styles::{info_log_style, warn_log_style, err_log_style, regular_style}};
+use self::{utils::draw_block_with_text, input::{UserInput, Target}, pomo_ui::{starter::PomodoroStarterUI, clock::PomodoroClockUI}, ui::UI, styles::{info_log_style, warn_log_style, err_log_style, regular_style}, notifications::notify};
 
 mod pomo_ui {
     pub mod starter;
@@ -15,6 +15,7 @@ mod utils;
 mod input;
 mod ui;
 mod styles;
+mod notifications;
 
 pub struct App<B: Backend> {
     terminal: Terminal<B>,
@@ -128,5 +129,9 @@ impl<B: Backend> App<B> {
         let block = Block::default().borders(Borders::ALL).style(regular_style());
         let paragraph = Paragraph::new(str).alignment(Alignment::Left).block(block).style(style);
         frame.render_widget(paragraph, rect);
+
+        if let Some(x) = Logger::consume_notification() {
+            notify("Overfocus", &x.0, matches!(x.1, logger::Duration::Long)).unwrap();
+        }
     }   
 }

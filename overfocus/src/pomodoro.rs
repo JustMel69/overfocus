@@ -3,7 +3,7 @@ use std::{sync::{Mutex, Arc, MutexGuard}, thread, time::Duration};
 use anyhow::{Result, Ok};
 use thiserror::Error;
 
-use crate::{unwrap_err, log_info, log_warn, log_err};
+use crate::{unwrap_err, log_info, log_warn, log_err, notifty_short, notify_long};
 
 #[derive(Clone, Copy)]
 pub enum PomodoroStage {
@@ -56,6 +56,7 @@ impl Pomodoro {
         thread::spawn(|| unwrap_err!(Self::tick(thread_pomodoro)));
 
         log_info!("Pomodoro clock started.");
+        notifty_short!("Pomodoro clock started!");
 
         pomodoro
     }
@@ -169,15 +170,18 @@ impl Pomodoro {
     fn start_work(&mut self) {
         self.seconds = 0;
         self.stage = PomodoroStage::Work;
+        notify_long!("Work started!");
     }
 
     fn start_short_break(&mut self) {
         self.seconds = 0;
         self.stage = PomodoroStage::ShortBreak;
+        notify_long!("Break started (5 min)");
     }
 
     fn start_long_break(&mut self) {
         self.seconds = 0;
         self.stage = PomodoroStage::LongBreak;
+        notify_long!("Break started (30 min)");
     }
 }
