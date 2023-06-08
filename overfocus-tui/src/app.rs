@@ -4,7 +4,7 @@ use crossterm::event::{Event, self, KeyCode};
 use overfocus::logger::{Logger, LogKind, self};
 use tui::{backend::Backend, Terminal, layout::{Layout, Direction, Constraint, Alignment, Rect}, widgets::{Block, Borders, Paragraph}};
 
-use self::{utils::draw_block_with_text, input::{UserInput, Target}, pomo_ui::{starter::PomodoroStarterUI, clock::PomodoroClockUI}, ui::UI, styles::{info_log_style, warn_log_style, err_log_style, regular_style}, notifications::notify};
+use self::{utils::draw_block_with_text, input::{UserInput, Target}, pomo_ui::{starter::PomodoroStarterUI, clock::PomodoroClockUI}, ui::{UI, UIContext}, styles::{info_log_style, warn_log_style, err_log_style, regular_style}, notifications::notify};
 
 mod pomo_ui {
     pub mod starter;
@@ -26,7 +26,7 @@ struct AppContext<B: Backend> {
 }
 
 impl<B: Backend> AppContext<B> {
-    pub fn last(&mut self) -> &mut dyn UI<B> {
+    pub fn peek(&mut self) -> &mut dyn UI<B> {
         self.stack.last_mut().unwrap().as_mut()
     }
 
@@ -34,8 +34,8 @@ impl<B: Backend> AppContext<B> {
         self.stack.push(Box::new(ui))
     }
 
-    pub fn pop(&mut self) {
-        self.stack.pop();
+    pub fn pop(&mut self) -> Option<UIContext> {
+        self.stack.pop().map(|x| x.get_context()).flatten()
     }
 }
 
@@ -67,7 +67,11 @@ impl<B: Backend> App<B> {
             if let UserInput::Goto(target) = &input {
                 match target {
                     Target::Pomodoro => ctx.push(PomodoroClockUI::new()),
-                    Target::PopStack => ctx.pop(),
+                    Target::PopStack => {
+                        if let Some(data) = ctx.pop() {
+                            ctx.peek().handle_context(data);
+                        }
+                    },
                     Target::Quit => return,
                 }
             }
@@ -109,7 +113,7 @@ impl<B: Backend> App<B> {
         ]).split(frame.size());
 
         draw_block_with_text(" Overfocus | Pomodoro ", Alignment::Center, frame, layout[0]);
-        ctx.last().ui(frame, layout[1], input);
+        ctx.peek().ui(frame, layout[1], input);
         Self::draw_logger(frame, layout[2]);
     }
 

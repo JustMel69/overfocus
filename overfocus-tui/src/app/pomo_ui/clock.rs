@@ -1,7 +1,8 @@
-use overfocus::pomodoro::{PomodoroHandle, Pomodoro, PomodoroStage};
+use anyhow::Result;
+use overfocus::{pomodoro::{PomodoroHandle, Pomodoro, PomodoroStage}, unwrap_err};
 use tui::{backend::Backend, text::{Spans, Span}, widgets::{Block, Borders, Paragraph}, layout::Alignment};
 
-use crate::app::{ui::UI, utils::sub_rect, input::{UserInput, Target}, styles::{regular_style, highlight_style}};
+use crate::app::{ui::{UI, UIContext}, utils::sub_rect, input::{UserInput, Target}, styles::{regular_style, highlight_style}};
 
 pub struct PomodoroClockUI {
     clock: PomodoroHandle,
@@ -34,6 +35,11 @@ impl<B: Backend> UI<B> for PomodoroClockUI {
         let block = Block::default().borders(Borders::ALL).title(" [ Pomodoro ] ").title_alignment(Alignment::Center).style(regular_style());
         let paragraph = Paragraph::new(self.get_spans()).block(block).style(regular_style());
         frame.render_widget(paragraph, rect);
+    }
+
+    fn get_context(&self) -> Option<UIContext> {
+        let pomodoros = unwrap_err!(Pomodoro::lock_and(&self.clock, |x| x.pomodoros()), else => return None);
+        return Some(UIContext::PomodoroClock { pomodoros });
     }
 }
 

@@ -1,6 +1,6 @@
 use tui::{backend::Backend, layout::{Rect, Alignment}, text::{Span, Spans}, widgets::{Block, Borders, Paragraph}};
 
-use crate::app::{utils::sub_rect, input::{UserInput, Target}, ui::UI, styles::{regular_style, highlight_style}};
+use crate::app::{utils::sub_rect, input::{UserInput, Target}, ui::{UI, UIContext}, styles::{regular_style, highlight_style}};
 
 struct Stats { max: u8, cur: u8, avg: u8 }
 
@@ -29,6 +29,17 @@ impl<B: Backend> UI<B> for PomodoroStarterUI {
         let block = Block::default().borders(Borders::ALL).title(" [ Pomodoro ] ").title_alignment(Alignment::Center).style(regular_style());
         let paragraph = Paragraph::new(text).block(block).style(regular_style());
         frame.render_widget(paragraph, rect);
+    }
+
+    fn handle_context(&mut self, ctx: UIContext) {
+        // Updates pomodoro count when done
+        #[allow(irrefutable_let_patterns)]
+        if let UIContext::PomodoroClock { pomodoros } = ctx {
+            self.stats.cur += pomodoros;
+            if self.stats.max < self.stats.cur {
+                self.stats.max = self.stats.cur;
+            }
+        }
     }
 }
 

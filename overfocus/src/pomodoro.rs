@@ -3,7 +3,7 @@ use std::{sync::{Mutex, Arc, MutexGuard}, thread, time::Duration};
 use anyhow::{Result, Ok};
 use thiserror::Error;
 
-use crate::{unwrap_err, log_info, log_warn, log_err, notifty_short, notify_long};
+use crate::{unwrap_err, log_info, log_warn, log_err, notify_short, notify_long};
 
 #[derive(Clone, Copy)]
 pub enum PomodoroStage {
@@ -24,7 +24,7 @@ enum UserInputFlags {
 pub struct Pomodoro {
     stage: PomodoroStage,
     repetitions: u8,
-    pomodoros: usize,
+    pomodoros: u8,
     seconds: usize,
 
     input_flags: UserInputFlags,
@@ -47,7 +47,7 @@ impl Pomodoro {
         let pomodoro = Arc::new(Mutex::new(Self {
             stage: PomodoroStage::Work,
             repetitions: 0,
-            pomodoros: 0,
+            pomodoros: 2,
             seconds: 0,
             input_flags: UserInputFlags::None,
         }));
@@ -55,8 +55,7 @@ impl Pomodoro {
         let thread_pomodoro = pomodoro.clone();
         thread::spawn(|| unwrap_err!(Self::tick(thread_pomodoro)));
 
-        log_info!("Pomodoro clock started.");
-        notifty_short!("Pomodoro clock started!");
+        notify_short!("Pomodoro clock started.");
 
         pomodoro
     }
@@ -102,7 +101,7 @@ impl Pomodoro {
         self.repetitions
     }
 
-    pub fn pomodoros(&self) -> usize {
+    pub fn pomodoros(&self) -> u8 {
         self.pomodoros
     }
 

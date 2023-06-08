@@ -3,7 +3,7 @@ use std::{sync::{Mutex, OnceLock}, time::Instant};
 // · · ·  Macro Definitions  · · · //
 
 #[macro_export]
-macro_rules! notifty_short {
+macro_rules! notify_short {
     ($expr:expr) => {
         $crate::logger::Logger::notify(format!("{}", $expr), $crate::logger::Duration::Short);
     };
@@ -39,6 +39,16 @@ macro_rules! log_err {
 
 #[macro_export]
 macro_rules! unwrap_err {
+    ($expr:expr, else => $else:expr) => {
+        match $expr {
+            Result::Ok(x) => x,
+            Result::Err(e) => {
+                $crate::log_err!(e);
+                $else
+            },
+        }
+    };
+    
     ($expr:expr) => {
         if let Result::Err(e) = $expr {
             $crate::log_err!(e);
@@ -88,9 +98,12 @@ impl Logger {
     }
 
     pub fn notify(text: String, duration: Duration) {
-        let mut logger = LOGGER.get_or_init(Self::new).lock().unwrap();
+        { // Scope here so there's no lock
+            let mut logger = LOGGER.get_or_init(Self::new).lock().unwrap();
+            logger.notification = Some(NotificationData(text.clone(), duration))
+        }
 
-        logger.notification = Some(NotificationData(text, duration));
+        Logger::log(text, LogKind::Info);
     }
 
     pub fn last() -> Option<LogData> {
